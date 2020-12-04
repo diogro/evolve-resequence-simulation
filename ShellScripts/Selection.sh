@@ -1,20 +1,22 @@
+#!/bin/bash
+
 ## This script is used to establish quantitative trait architectures and perform artificial selection experiments on the neutral populations generated using the Burnin.sh script.
 ## IMPORTANT: Change the output directory and in the first step and the variables in the second step before running.
 ## Run the script on server using: nohup bash Selection.sh > Selection.nohup &
 
 ## Step 1: Ceate directories to store the outputs. Make sure to change the directory names in the first three lines.
 
-cd /fs/cbsubscb10/storage/rl683/TemporalScan/Simulations/ # Change this to a directory where you want to store all you simulation outputs.
-mkdir NQTL10 # Change this to what you want to name this particular quantitative trait architectures and/or the experimental design that you are simulating.
+cd /home/diogro/projects/HS_simulations/data/epistatic_tests # Change this to a directory where you want to store all you simulation outputs.
+mkdir -p NQTL10 # Change this to what you want to name this particular quantitative trait architectures and/or the experimental design that you are simulating.
 cd NQTL10 # Same as above
-for k in {1..100} # Number of simulation replicates that you want to create.
+for k in {1..2} # Number of simulation replicates that you want to create.
 do
-    mkdir 'SimRep'$k
+    mkdir -p 'SimRep'$k
     cd 'SimRep'$k
-    for j in {1..10}
+    for j in {1..1}
     do
-        mkdir 'ExpRepPlus'$j
-        mkdir 'ExpRepMinus'$j
+        mkdir -p 'ExpRepPlus'$j
+        mkdir -p 'ExpRepMinus'$j
     done
     cd ..
 done
@@ -27,7 +29,7 @@ cd ..
 ## Note: The number of generations in the selection experiment can only be changed in the Selection.slim script.
 ## Depending on the population size, more or fewer burnin generations might have been needed. If that's the case, edit the Selection.slim file as instructed in the file. 
 
-for k in {1..100} # Set the number of simulation replicates that you want to create.
+for k in {1..2} # Set the number of simulation replicates that you want to create.
 do
     echo $k
     for j in {1..1} # Set the number of experimental replications. 
@@ -37,11 +39,11 @@ do
         do
             echo $i
             # Set the path to the SLiM program in the next line 
-            ~/Program/SLiM/bin/slim \
+            slim \
             -d SimRepID=$k  \
             -d ExpRepID=$j \
             -d Direction=$i \
-            -d "BurninPath='/fs/cbsubscb10/storage/rl683/TemporalScan/Simulations/Burnin/'" \
+            -d "BurninPath='/home/diogro/projects/HS_simulations/data/epistatic_tests/Burnin/'" \
             -d "BurninFilename='Burnin.txt'" \
             -d LCh=30000000 \
             -d RecRate=1e-8 \
@@ -58,8 +60,8 @@ do
             -d "EpiSce=c(0,1,2,1,2,3,2,3,4)" \
             -d PopSize=1000 \
             -d SelectedSize=100 \
-            -d "OutPath='/fs/cbsubscb10/storage/rl683/TemporalScan/Simulations/NQTL10/'" \
-            /fs/cbsubscb10/storage/rl683/TemporalScan/SlimScripts/Selection.slim # Directory to the Selection.slim file included in the simulation tool.
+            -d "OutPath='/home/diogro/projects/HS_simulations/data/epistatic_tests/NQTL10/'" \
+            /home/diogro/projects/evolve-resequence-simulation/SlimScripts/Selection.slim # Directory to the Selection.slim file included in the simulation tool.
         done
     done
 done
