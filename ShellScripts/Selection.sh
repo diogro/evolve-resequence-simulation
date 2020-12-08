@@ -29,13 +29,13 @@ cd ..
 ## Note: The number of generations in the selection experiment can only be changed in the Selection.slim script.
 ## Depending on the population size, more or fewer burnin generations might have been needed. If that's the case, edit the Selection.slim file as instructed in the file. 
 
-for k in {1..2} # Set the number of simulation replicates that you want to create.
+for k in 1 # {1..100} # Set the number of simulation replicates that you want to create.
 do
     echo $k
-    for j in {1..1} # Set the number of experimental replications. 
+    for j in 1 # {1..10} # Set the number of experimental replications. 
     do
         echo $j
-        for i in {T,F} # Set the direction of selection (F if selecting the larger phenotype, T otherwise, T,F is both directions are selected)
+        for i in F #{T,F} # Set the direction of selection (F if selecting the larger phenotype, T otherwise, T,F is both directions are selected)
         do
             echo $i
             # Set the path to the SLiM program in the next line 
@@ -48,18 +48,19 @@ do
             -d LCh=30000000 \
             -d RecRate=1e-8 \
             -d SampleSize=50 \
-            -d NQTL=10 \
+            -d NQTL=100 \
+            -d NEPIPAIR=10 \
             -d ESMean=1.0 \
-            -d "ESDist='f'" \
+            -d "ESDist='ln'" \
             -d LowFreq=F \
-            -d FreqBound=0.0 \
+            -d FreqBound=0.05 \
             -d LowerPosBound=0 \
             -d UpperPosBound=29999999 \
             -d D=0.5 \
             -d Epistasis=T \
-            -d "EpiSce=c(0,1,2,1,2,3,2,3,4)" \
+            -d "EpiSce=c(0, 2, 4, 2, 2, 2, 4, 2, 0)" \
             -d PopSize=1000 \
-            -d SelectedSize=100 \
+            -d SelectedSize=300 \
             -d "OutPath='/home/diogro/projects/HS_simulations/data/epistatic_tests/NQTL10/'" \
             /home/diogro/projects/evolve-resequence-simulation/SlimScripts/Selection.slim # Directory to the Selection.slim file included in the simulation tool.
         done
@@ -75,8 +76,9 @@ done
 # RecRate = recombination rate (change the slim script if simulating multiple chromosomes)
 # SampleSize = number of individuals to sample each generation
 # NQTL = number of QTLs, (even number is recommended when the number is small)
+# NEPIPAIR = number of epistatic QTL pairs. Must be less than NQTL/2
 # ESMean = absolute value of mean effect size
-# ESDist = effect size distribution("f" for fixed or "e" for exponential), 
+# ESDist = effect size distribution("f" for fixed, "ln" for lognormal, or "e" for exponential), 
 # LowFreq = starting frequency preference (T if selecting for lower frequency, F if selecting for higher frequency or random) 
 # FreqBound = frequency bound (0.0~0.5, 0.0 if starting frequency is random)
 # LowerPosBound = lower position bound (0 if random)
