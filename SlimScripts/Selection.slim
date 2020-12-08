@@ -196,11 +196,13 @@ initialize() {
 		writeFile(OutPath + "SimRep" + SimRepID + "/ExpRepMinus" + ExpRepID + "/Gen" + GenID + "_NSegregatingQTL.txt", NSegregatingQTL, F);
 
 
-	// get the phenotypic order for all individuals in order to perform truncating selection; change this if a different seelction regime is used
+	// get the phenotypic order for all individuals in order to perform truncating selection; change this if a different selection regime is used
 	Order = order(sim.subpopulations.individuals.tag, Direction);
 	
 	// redefine individual tags as their phenotypic ranks 
-	sim.subpopulations.individuals.tag[Order] = 0:(size(sim.subpopulations.individuals)-1);
+	for(i in 0:(length(Order)-1))
+		sim.subpopulations.individuals[Order[i]].tag = i;
+	//sim.subpopulations.individuals.tag[Order] = 0:(size(sim.subpopulations.individuals)-1);
 }
 10000: fitness(m2) {
 	// the QTLs themselves are neutral; the m3 mutation type handles them

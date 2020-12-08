@@ -56,7 +56,7 @@ do
             -d LowerPosBound=0 \
             -d UpperPosBound=29999999 \
             -d D=0.5 \
-            -d Epistasis=F \
+            -d Epistasis=T \
             -d "EpiSce=c(0,1,2,1,2,3,2,3,4)" \
             -d PopSize=1000 \
             -d SelectedSize=100 \
