@@ -3,7 +3,8 @@
 // In this example, the selection experiment lasts 11 generations. 
 // If you want to set it to 100 generation, for example, this line should become "10000:10099 late() {"
 
-// Depending on the population size, more or fewer burnin generations might be needed. If that's the case, the number 10000 in the begining of each section might also need to be changed. 
+// Depending on the population size, more or fewer burn-in generations might be needed. 
+// If that's the case, the number 10000 in the beginning of each section might also need to be changed. 
 
 initialize() {
 	initializeMutationRate(0);
@@ -53,6 +54,7 @@ initialize() {
 
 
 	// get all SNPs within one region of a chromosome
+
 	ClusteredMutations=unique(FreqencyConstrainedMutations)
 	[which(FreqencyConstrainedMutations.position >= LowerPosBound & 
 	FreqencyConstrainedMutations.position <= UpperPosBound)];
@@ -60,6 +62,9 @@ initialize() {
 	// set seed so that QTLs remain the same within one simulation replication
 	setSeed(SimRepID); 
 	
+
+	catn("Number of M1 mutations: " + length(ClusteredMutations));
+
 	// sample QTLs at random after the frequency and position constraints are imposed
 	QTL=sample(ClusteredMutations,NQTL);
 	QTL.setMutationType(m2);
@@ -68,6 +73,10 @@ initialize() {
 	if (ESDist == "f")
 		for (IndividualQTL in QTL){
 			IndividualQTL.setSelectionCoeff(ESMean);
+		}
+	else if (ESDist == "ln")
+		for (IndividualQTL in QTL){
+			IndividualQTL.setSelectionCoeff(rlnorm(1, ESMean, 1));
 		}
 	else if (ESDist == "e")
 		for (IndividualQTL in QTL){
@@ -81,6 +90,7 @@ initialize() {
 	for (IndividualQTL in NegativeQTL){
 			IndividualQTL.setSelectionCoeff(-(IndividualQTL.selectionCoeff));
 	}
+
 	// if there is epistasis, randomly set up epistatic pairs
 	if (Epistasis == T)
 		QTL.tag = 1:NQTL;
@@ -123,14 +133,15 @@ initialize() {
 				// print(Hetero);
 				
 				// use phenotypic value to define individual tag
-				individual.tag = asInteger(sum(Homo.selectionCoeff)*10000)*2+asInteger(sum(Hetero.selectionCoeff*Hetero.mutationType.dominanceCoeff)*10000)*2; // multiply by 10000 since individual tag can only be integers
+				individual.tagF = sum(Homo.selectionCoeff)*2 + sum(Hetero.selectionCoeff * Hetero.mutationType.dominanceCoeff)*2; 
 			}
 			
+
 			// if there is epistasis, define individual tags differently according to the epistasis scenario chosen
 			else if (Epistasis == T)
 			{
-				individual.tag = 0; // first set individual tag to be 0
-				for (EpistasisPair in 1:asInteger(NQTL/2)) // extract information on each epistatic pair for each individual
+				individual.tagF = 0; // first set individual tag to be 0
+				for (EpistasisPair in 1:asInteger(NEPIPAIR)) // extract information on each epistatic pair for each individual
 				{	
 					EpistasisMutation1 = individual.genomes.mutationsOfType(m2)[which(individual.genomes.mutationsOfType(m2).tag == 2*EpistasisPair-1)];
 					EpistasisMutation2 = individual.genomes.mutationsOfType(m2)[which(individual.genomes.mutationsOfType(m2).tag == 2*EpistasisPair)];
@@ -143,34 +154,37 @@ initialize() {
 					sign = (-1)^EpistasisPair; // give half of the pairs effect sizes the reverse of the epistatic scenario defined to make sure the mean trait value is ~0 in the first generation
 					
 					// for each pair, calculate its contribution to the phenotype and add it to the individual tag
+					// EpiSce vector key:
+					// 0:aabb = 0, 1:Aabb, 2:AAbb, 3:aaBb, 4:AaBb, 5:AABb, 6:aaBB, 7:AaBB, 8:AABB);
+
 					if (size(EpistasisMutation1) == 2)
 					{ 
 						//print(c("EpistasisMutation1Homo"));
 						if (size(EpistasisMutation2) == 2)
-							individual.tag=individual.tag+asInteger(EpiSce[8]/4*(2*S1 + 2*S2)*10000*sign);
+							individual.tagF = individual.tagF + EpiSce[8]/4 * (2*S1 + 2*S2) * sign;
 						else if (size(EpistasisMutation2) == 1)
-							individual.tag=individual.tag+asInteger(EpiSce[7]/3*(2*S1 + 2*D2*S2)*10000*sign);
+							individual.tagF = individual.tagF + EpiSce[7]/3 * (2*S1 + 2*D2*S2) * sign;
 						else
-							individual.tag=individual.tag+asInteger(EpiSce[6]/2*(2*S1 + 0)*10000*sign);
+							individual.tagF = individual.tagF + EpiSce[6]/2 * (2*S1 + 0) * sign;
 					}
 					else if (size(EpistasisMutation1) == 1)
 					{
 						//print(c("EpistasisMutation1Hetero"));
 						if (size(EpistasisMutation2) == 2)
-							individual.tag=individual.tag+asInteger(EpiSce[5]/3*(2*D1*S1 + 2*S2)*10000*sign);
+							individual.tagF = individual.tagF + EpiSce[5]/3*(2*D1*S1 + 2*S2) * sign;
 						else if (size(EpistasisMutation2) == 1)
-							individual.tag=individual.tag+asInteger(EpiSce[4]/2*(2*D1*S1 + 2*D2*S2)*10000*sign);
+							individual.tagF = individual.tagF + EpiSce[4]/2*(2*D1*S1 + 2*D2*S2) * sign;
 						else
-							individual.tag=individual.tag+asInteger(EpiSce[3]/1*(2*D1*S1 + 0)*10000*sign);
+							individual.tagF = individual.tagF + EpiSce[3]/1*(2*D1*S1 + 0) * sign;
 					}
 					else if (size(EpistasisMutation1) == 0)
 					{
 						if (size(EpistasisMutation2) == 2)
-							individual.tag=individual.tag+asInteger(EpiSce[2]/2*(0 + 2*S2)*10000*sign);
+							individual.tagF = individual.tagF + EpiSce[2]/2*(0 + 2*S2) * sign;
 						else if (size(EpistasisMutation2) == 1)
-							individual.tag=individual.tag+asInteger(EpiSce[1]/1*(0 + 2*D2*S2)*10000*sign);
+							individual.tagF = individual.tagF + EpiSce[1]/1*(0 + 2*D2*S2) * sign;
 						else
-							individual.tag=individual.tag;
+							individual.tagF = individual.tagF;
 					}
 					else 
 					{
@@ -182,7 +196,7 @@ initialize() {
 	
 	
 	// output the traits
-	Traits = paste(sim.subpopulations.individuals.tag/10000, sep="\n"); //divide by 1000 to return the original trait value
+	Traits = paste(sim.subpopulations.individuals.tagF, sep="\n"); //divide by 1000 to return the original trait value
 	if (Direction == F)
 		writeFile(OutPath + "SimRep" + SimRepID + "/ExpRepPlus" + ExpRepID + "/Gen" + GenID + "_Trait.txt", Traits, F);
 	else
@@ -197,8 +211,11 @@ initialize() {
 
 
 	// get the phenotypic order for all individuals in order to perform truncating selection; change this if a different selection regime is used
-	Order = order(sim.subpopulations.individuals.tag, Direction);
+	Order = order(sim.subpopulations.individuals.tagF, Direction);
 	
+	//if (sim.generation % 10 == 0)
+ 	catn(sim.generation + ": Mean phenotype == " + mean(sim.subpopulations.individuals.tagF)); 
+
 	// redefine individual tags as their phenotypic ranks 
 	for(i in 0:(length(Order)-1))
 		sim.subpopulations.individuals[Order[i]].tag = i;
