@@ -196,7 +196,7 @@ initialize() {
 	
 	
 	// output the traits
-	Traits = paste(sim.subpopulations.individuals.tagF, sep="\n"); //divide by 1000 to return the original trait value
+	Traits = paste(sim.subpopulations.individuals.tagF, sep="\n"); 
 	if (Direction == F)
 		writeFile(OutPath + "SimRep" + SimRepID + "/ExpRepPlus" + ExpRepID + "/Gen" + GenID + "_Trait.txt", Traits, F);
 	else
