@@ -1,14 +1,18 @@
 ## This script is used to calculate power and false positive rate at different thresholds.
-## First define variables by selecting the experimental designs that you want to compare. This is necessary because compiled output from different experimental designs can generated from a single selection experiment simulation. (e.g. If you have two experimental replicates in the simulation, you can still include only one of them in power analysis.) Variable names are the same as in the shell and slim scripts before unless noted otherwise. 
+## First define variables by selecting the experimental designs that you want to compare. 
+## This is necessary because compiled output from different experimental designs can generated from a single selection experiment simulation.
+## (e.g. If you have two experimental replicates in the simulation, you can still include only one of them in power analysis.)
+## Variable names are the same as in the shell and slim scripts before unless noted otherwise. 
 ## Run this script on server with the following command: nohup R CMD BATCH ./Analysis.R  ./Analysis.log > Analysis.nohup & 
 
 rm(list=ls(all=TRUE))
 library(data.table)
 
 LChr=30000000 # length of chromosome; make sure that the simulation had LChr EQUAL to this
-PopSize=1000 # make sure that the simulation had SampleSize EQUAL to this
+PopSize=5000 # make sure that the simulation had SampleSize EQUAL to this
 SampleSize=50 # make sure that the simulation had SampleSize LARGER or EQUAL to this
-NGen=5 # make sure that the simulation had NGen LARGER or EQUAL to this # When the simulation has NGen larger than this, pay attention to which generation was sampled in the TwoTimepoint output; you may need to use the AllTimpoint option
+NGen=5 # make sure that the simulation had NGen LARGER or EQUAL to this # When the simulation has NGen larger than this, pay attention to which
+       # generation was sampled in the TwoTimepoint output; you may need to use the AllTimpoint option
 NsExpRep=c(1 
            #, 2, 5
 ) # make sure that the simulation had NExpRep LARGER or EQUAL to each element in this
