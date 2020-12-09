@@ -23,8 +23,15 @@ initialize() {
 	sim.addSubpop("p1", BurninSize);
 }
 
-10000 late(){
+1:50000 late() {
+	GenID = sim.generation;
+	// last sanity check
+	if (GenID % 1000 == 0)
+		catn("Generation " + GenID);
+}
+
+50000 late(){
 	// save the output of the burnin	
 	sim.outputFull(BurninPath + "SimRep" + SimRepID + "/" + BurninFilename);
 }
-s1 10000 late() {}
+s1 50000 late() {}

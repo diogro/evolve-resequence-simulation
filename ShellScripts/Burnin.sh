@@ -9,27 +9,27 @@
 ## Step 1: Ceate directories to store the outputs. Make sure to change the directory name in the first line.
 
 cd /home/diogro/projects/HS_simulations/data/epistatic_tests # Change this to a directory where you want to store all you simulation outputs.
-mkdir -p Burnin
-cd Burnin
+mkdir -p Burnin_n5000
+cd Burnin_n5000
 
-for k in {1..2} # Number of simulation replicates that you want to create.
+for k in {1..10} # Number of simulation replicates that you want to create.
 do 
-    mkdir 'SimRep'$k
+    mkdir -p 'SimRep'$k
 done
 cd ..
 
 ## Step 2: Run burnin using SLiM 2. Variables inside the loop are all customizable and can be changed as desired. 
 
-for k in {1..2} # Set the number of simulation replicates that you want to create.
+for k in {1..10} # Set the number of simulation replicates that you want to create.
 do
 	# Set the path to the SLiM program in the next line 
     slim \
     -d SimRepID=$k  \
-    -d Mu=2e-8 \
+    -d Mu=1e-8 \
     -d RecRate=1e-8 \
     -d LCh=30000000 \
-    -d BurninSize=1000 \
-    -d "BurninPath='/home/diogro/projects/HS_simulations/data/epistatic_tests/Burnin/'" \
+    -d BurninSize=5000 \
+    -d "BurninPath='/home/diogro/projects/HS_simulations/data/epistatic_tests/Burnin_n5000/'" \
     -d "BurninFilename='Burnin.txt'" \
     /home/diogro/projects/evolve-resequence-simulation/SlimScripts/Burnin.slim # Directory to the Burnin.slim file included in the simulation tool.
 done

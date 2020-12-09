@@ -35,7 +35,7 @@ do
     for j in 1 # {1..10} # Set the number of experimental replications. 
     do
         echo $j
-        for i in F #{T,F} # Set the direction of selection (F if selecting the larger phenotype, T otherwise, T,F is both directions are selected)
+        for i in T #{T,F} # Set the direction of selection (F if selecting the larger phenotype, T otherwise, T,F is both directions are selected)
         do
             echo $i
             # Set the path to the SLiM program in the next line 
@@ -48,10 +48,10 @@ do
             -d LCh=30000000 \
             -d RecRate=1e-8 \
             -d SampleSize=50 \
-            -d NQTL=100 \
-            -d NEPIPAIR=10 \
-            -d ESMean=1.0 \
-            -d "ESDist='ln'" \
+            -d NQTL=1000 \
+            -d NEPIPAIR=200 \
+            -d ESMean=0.0 \
+            -d "ESDist='g'" \
             -d LowFreq=F \
             -d FreqBound=0.05 \
             -d LowerPosBound=0 \
@@ -59,8 +59,8 @@ do
             -d D=0.5 \
             -d Epistasis=T \
             -d "EpiSce=c(0, 2, 4, 2, 2, 2, 4, 2, 0)" \
-            -d PopSize=1000 \
-            -d SelectedSize=300 \
+            -d PopSize=5000 \
+            -d SelectedSize=4750 \
             -d "OutPath='/home/diogro/projects/HS_simulations/data/epistatic_tests/NQTL10/'" \
             /home/diogro/projects/evolve-resequence-simulation/SlimScripts/Selection.slim # Directory to the Selection.slim file included in the simulation tool.
         done

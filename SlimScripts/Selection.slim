@@ -74,6 +74,10 @@ initialize() {
 		for (IndividualQTL in QTL){
 			IndividualQTL.setSelectionCoeff(ESMean);
 		}
+	else if (ESDist == "g")
+		for (IndividualQTL in QTL){
+			IndividualQTL.setSelectionCoeff(rnorm(1, ESMean, 1));
+		}
 	else if (ESDist == "ln")
 		for (IndividualQTL in QTL){
 			IndividualQTL.setSelectionCoeff(rlnorm(1, ESMean, 1));
@@ -85,7 +89,7 @@ initialize() {
 	
 	// assign negative effect sizes to half of the QTLs
 	Negative = sample(0:(NQTL-1), asInteger(NQTL/2));	
-	print(Negative);
+	// print(Negative);
 	NegativeQTL = QTL[Negative];
 	for (IndividualQTL in NegativeQTL){
 			IndividualQTL.setSelectionCoeff(-(IndividualQTL.selectionCoeff));
@@ -108,7 +112,7 @@ initialize() {
 	// even more checks
 	// print(QTL);
 	// print(QTL.position);
-	// print(sim.mutationFrequencies(p1, QTL));
+ 	print(sim.mutationFrequencies(p1, QTL));
 }
 
 
@@ -213,8 +217,8 @@ initialize() {
 	// get the phenotypic order for all individuals in order to perform truncating selection; change this if a different selection regime is used
 	Order = order(sim.subpopulations.individuals.tagF, Direction);
 	
-	//if (sim.generation % 10 == 0)
- 	catn(sim.generation + ": Mean phenotype == " + mean(sim.subpopulations.individuals.tagF)); 
+	if (sim.generation % 10 == 0)
+ 		catn(sim.generation + ": Mean phenotype == " + mean(sim.subpopulations.individuals.tagF)); 
 
 	// redefine individual tags as their phenotypic ranks 
 	for(i in 0:(length(Order)-1))
@@ -235,10 +239,10 @@ initialize() {
 } 
 
 
-10000:10010 late() {
+10000:10099 late() {
 	GenID = sim.generation-9999;
 	// last sanity check
-	//print(GenID);
+	// print(GenID);
 	//print(size(unique(sim.subpopulations.genomes.mutationsOfType(m1))));
 	//print(size(unique(sim.subpopulations.genomes.mutationsOfType(m2))));
 	//print(size(unique(sim.subpopulations.genomes.mutations)));
@@ -257,5 +261,11 @@ initialize() {
 		AllIndividuals.genomes.output(OutPath + "SimRep" + SimRepID + "/ExpRepPlus" + ExpRepID + "/Gen" + GenID + "_Full.txt");
 	else
 		AllIndividuals.genomes.output(OutPath + "SimRep" + SimRepID + "/ExpRepMinus" + ExpRepID + "/Gen" + GenID + "_Full.txt");	
+}
+
+10099 late(){
+	QTLs = sim.mutationsOfType(m2);
+	N_fixed = sum(sim.mutationFrequencies(p1,  QTLs) > 0.99);
+	print(N_fixed);
 }
 
