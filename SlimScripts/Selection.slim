@@ -31,7 +31,7 @@ initialize() {
 }
 
 
-10000 late() {
+50000 late() {
 	// read the burn-in
 	sim.readFromPopulationFile(BurninPath + "SimRep" + SimRepID + "/" + BurninFilename);
 		
@@ -61,7 +61,6 @@ initialize() {
 
 	// set seed so that QTLs remain the same within one simulation replication
 	setSeed(SimRepID); 
-	
 
 	catn("Number of M1 mutations: " + length(ClusteredMutations));
 
@@ -117,9 +116,9 @@ initialize() {
 
 
 
-10000: late() {
+50000: late() {
 	// define generation number
-	GenID = sim.generation-9999;
+	GenID = sim.generation-49999;
 
 	// define individual tags as phenotypes for the additive effects of QTLs while accounting for dominance
 	for (individual in sim.subpopulations.individuals)
@@ -200,37 +199,38 @@ initialize() {
 	
 	
 	// output the traits
-	Traits = paste(sim.subpopulations.individuals.tagF, sep="\n"); 
-	if (Direction == F)
-		writeFile(OutPath + "SimRep" + SimRepID + "/ExpRepPlus" + ExpRepID + "/Gen" + GenID + "_Trait.txt", Traits, F);
-	else
-		writeFile(OutPath + "SimRep" + SimRepID + "/ExpRepMinus" + ExpRepID + "/Gen" + GenID + "_Trait.txt", Traits, F);
-	
-	// output number of persisting QTLs each generation
-	NSegregatingQTL = paste(size(unique(sim.subpopulations.individuals.genomes.mutationsOfType(m2))));
-	if (Direction == F)
-		writeFile(OutPath + "SimRep" + SimRepID + "/ExpRepPlus" + ExpRepID + "/Gen" + GenID + "_NSegregatingQTL.txt", NSegregatingQTL, F);
-	else
-		writeFile(OutPath + "SimRep" + SimRepID + "/ExpRepMinus" + ExpRepID + "/Gen" + GenID + "_NSegregatingQTL.txt", NSegregatingQTL, F);
+	if (GenID % 10 == 0 | GenID == 1){
+	 	catn("Generation " + GenID + ": Mean phenotype == " + mean(sim.subpopulations.individuals.tagF)); 
 
+		Traits = paste(sim.subpopulations.individuals.tagF, sep="\n"); 
+		if (Direction == F)
+			writeFile(OutPath + "SimRep" + SimRepID + "/ExpRepPlus" + ExpRepID + "/Gen" + GenID + "_Trait.txt", Traits, F);
+		else
+			writeFile(OutPath + "SimRep" + SimRepID + "/ExpRepMinus" + ExpRepID + "/Gen" + GenID + "_Trait.txt", Traits, F);
+		
+		// output number of persisting QTLs each generation
+		NSegregatingQTL = paste(size(unique(sim.subpopulations.individuals.genomes.mutationsOfType(m2))));
+		if (Direction == F)
+			writeFile(OutPath + "SimRep" + SimRepID + "/ExpRepPlus" + ExpRepID + "/Gen" + GenID + "_NSegregatingQTL.txt", NSegregatingQTL, F);
+		else
+			writeFile(OutPath + "SimRep" + SimRepID + "/ExpRepMinus" + ExpRepID + "/Gen" + GenID + "_NSegregatingQTL.txt", NSegregatingQTL, F);
+	}
 
 	// get the phenotypic order for all individuals in order to perform truncating selection; change this if a different selection regime is used
 	Order = order(sim.subpopulations.individuals.tagF, Direction);
 	
-	if (sim.generation % 10 == 0)
- 		catn(sim.generation + ": Mean phenotype == " + mean(sim.subpopulations.individuals.tagF)); 
 
 	// redefine individual tags as their phenotypic ranks 
 	for(i in 0:(length(Order)-1))
 		sim.subpopulations.individuals[Order[i]].tag = i;
 	//sim.subpopulations.individuals.tag[Order] = 0:(size(sim.subpopulations.individuals)-1);
 }
-10000: fitness(m2) {
+50000: fitness(m2) {
 	// the QTLs themselves are neutral; the m3 mutation type handles them
 	return 1.0;
 	}
 	
-10000: fitness(m3) {
+50000: fitness(m3) {
 	// keep only the 100 highest ranking individuals and remove all others
 	if(individual.tag < SelectedSize) 
 		return 1.0;
@@ -239,10 +239,10 @@ initialize() {
 } 
 
 
-10000:10099 late() {
-	GenID = sim.generation-9999;
+50000:50099 late() {
+	GenID = sim.generation-49999;
 	// last sanity check
-	// print(GenID);
+	//print(GenID);
 	//print(size(unique(sim.subpopulations.genomes.mutationsOfType(m1))));
 	//print(size(unique(sim.subpopulations.genomes.mutationsOfType(m2))));
 	//print(size(unique(sim.subpopulations.genomes.mutations)));
@@ -251,21 +251,28 @@ initialize() {
 	SampledIndividuals = sample(AllIndividuals, SampleSize);
 	
 	// output sampled population
-	if (Direction == F)
-		SampledIndividuals.genomes.output(OutPath + "SimRep" + SimRepID + "/ExpRepPlus" + ExpRepID + "/Gen" + GenID + "_Sample.txt");
-	else
-		SampledIndividuals.genomes.output(OutPath + "SimRep" + SimRepID + "/ExpRepMinus" + ExpRepID + "/Gen" + GenID + "_Sample.txt");
-	
+	if (GenID % 10 == 0){
+
+		if (Direction == F){
+			//SampledIndividuals.genomes.output(OutPath + "SimRep" + SimRepID + "/ExpRepPlus" + ExpRepID + "/Gen" + GenID + "_Sample.txt");
+			sim.outputMutations(sim.mutationsOfType(m2), filePath=OutPath + "SimRep" + SimRepID + "/ExpRepPlus" + ExpRepID + "/Gen" + GenID + "_mutations.txt", append=T);
+			sim.subpopulations.outputVCFSample(SampleSize, F, filePath=OutPath + "SimRep" + SimRepID + "/ExpRepPlus" + ExpRepID + "/Gen" + GenID + "_Sample.vcf");
+		}
+		else{
+			//SampledIndividuals.genomes.output(OutPath + "SimRep" + SimRepID + "/ExpRepMinus" + ExpRepID + "/Gen" + GenID + "_Sample.txt");
+			sim.outputMutations(sim.mutationsOfType(m2), filePath=OutPath + "SimRep" + SimRepID + "/ExpRepMinus" + ExpRepID + "/Gen" + GenID + "_mutations.txt", append=T);
+			sim.subpopulations.outputVCFSample(SampleSize, F, filePath=OutPath + "SimRep" + SimRepID + "/ExpRepMinus" + ExpRepID + "/Gen" + GenID + "_Sample.vcf");
+		}
+	}
 	// output full population
-	if (Direction == F)
-		AllIndividuals.genomes.output(OutPath + "SimRep" + SimRepID + "/ExpRepPlus" + ExpRepID + "/Gen" + GenID + "_Full.txt");
-	else
-		AllIndividuals.genomes.output(OutPath + "SimRep" + SimRepID + "/ExpRepMinus" + ExpRepID + "/Gen" + GenID + "_Full.txt");	
+	//if (Direction == F)
+	//	AllIndividuals.genomes.output(OutPath + "SimRep" + SimRepID + "/ExpRepPlus" + ExpRepID + "/Gen" + GenID + "_Full.txt");
+	//else
+	//	AllIndividuals.genomes.output(OutPath + "SimRep" + SimRepID + "/ExpRepMinus" + ExpRepID + "/Gen" + GenID + "_Full.txt");	
 }
 
-10099 late(){
+50099 late(){
 	QTLs = sim.mutationsOfType(m2);
 	N_fixed = sum(sim.mutationFrequencies(p1,  QTLs) > 0.99);
 	print(N_fixed);
 }
-
