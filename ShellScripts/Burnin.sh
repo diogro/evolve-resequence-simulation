@@ -25,13 +25,13 @@ do
 	# Set the path to the SLiM program in the next line 
     slim \
     -d SimRepID=$k  \
-    -d Mu=1e-8 \
+    -d Mu=1.5e-9 \
     -d RecRate=1e-8 \
     -d LCh=30000000 \
     -d BurninSize=5000 \
     -d "BurninPath='/home/diogro/projects/HS_simulations/data/epistatic_tests/Burnin_n5000/'" \
     -d "BurninFilename='Burnin.txt'" \
-    /home/diogro/projects/evolve-resequence-simulation/SlimScripts/Burnin.slim # Directory to the Burnin.slim file included in the simulation tool.
+    /home/diogro/projects/evolve-resequence-simulation/SlimScripts/Burnin.slim & # Directory to the Burnin.slim file included in the simulation tool.
 done
 
 # SimuRepID = Simulation Replicate ID

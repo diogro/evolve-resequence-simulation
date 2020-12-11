@@ -7,8 +7,8 @@
 ## Step 1: Ceate directories to store the outputs. Make sure to change the directory names in the first three lines.
 
 cd /home/diogro/projects/HS_simulations/data/epistatic_tests # Change this to a directory where you want to store all you simulation outputs.
-mkdir -p NQTL10 # Change this to what you want to name this particular quantitative trait architectures and/or the experimental design that you are simulating.
-cd NQTL10 # Same as above
+mkdir -p NQTL100 # Change this to what you want to name this particular quantitative trait architectures and/or the experimental design that you are simulating.
+cd NQTL100 # Same as above
 for k in {1..2} # Number of simulation replicates that you want to create.
 do
     mkdir -p 'SimRep'$k
@@ -16,7 +16,7 @@ do
     for j in {1..1}
     do
         mkdir -p 'ExpRepPlus'$j
-        mkdir -p 'ExpRepMinus'$j
+        #mkdir -p 'ExpRepMinus'$j
     done
     cd ..
 done
@@ -35,7 +35,7 @@ do
     for j in 1 # {1..10} # Set the number of experimental replications. 
     do
         echo $j
-        for i in T #{T,F} # Set the direction of selection (F if selecting the larger phenotype, T otherwise, T,F is both directions are selected)
+        for i in F #{T,F} # Set the direction of selection (F if selecting the larger phenotype, T otherwise, T,F is both directions are selected)
         do
             echo $i
             # Set the path to the SLiM program in the next line 
@@ -43,13 +43,13 @@ do
             -d SimRepID=$k  \
             -d ExpRepID=$j \
             -d Direction=$i \
-            -d "BurninPath='/home/diogro/projects/HS_simulations/data/epistatic_tests/Burnin/'" \
+            -d "BurninPath='/home/diogro/projects/HS_simulations/data/epistatic_tests/Burnin_n5000/'" \
             -d "BurninFilename='Burnin.txt'" \
             -d LCh=30000000 \
             -d RecRate=1e-8 \
             -d SampleSize=50 \
-            -d NQTL=1000 \
-            -d NEPIPAIR=200 \
+            -d NQTL=100 \
+            -d NEPIPAIR=20 \
             -d ESMean=0.0 \
             -d "ESDist='g'" \
             -d LowFreq=F \
@@ -60,8 +60,8 @@ do
             -d Epistasis=T \
             -d "EpiSce=c(0, 2, 4, 2, 2, 2, 4, 2, 0)" \
             -d PopSize=5000 \
-            -d SelectedSize=4750 \
-            -d "OutPath='/home/diogro/projects/HS_simulations/data/epistatic_tests/NQTL10/'" \
+            -d SelectedSize=4500 \
+            -d "OutPath='/home/diogro/projects/HS_simulations/data/epistatic_tests/NQTL100/'" \
             /home/diogro/projects/evolve-resequence-simulation/SlimScripts/Selection.slim # Directory to the Selection.slim file included in the simulation tool.
         done
     done
