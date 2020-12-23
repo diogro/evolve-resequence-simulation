@@ -41,16 +41,16 @@ initialize() {
 	// sanity check
 	// print(size(unique(sim.subpopulations.genomes.mutationsOfType(m1))));
 	// print(size(unique(sim.subpopulations.genomes.mutationsOfType(m1).position)));
-	
+	muts = sim.mutationsOfType(m1);
+ 	freqs = sim.mutationFrequencies(NULL, muts);
+
 	// get all SNPs within an starting frequency interval
-	if (LowFreq == T)
-		FreqencyConstrainedMutations=unique(sim.subpopulations.genomes.mutationsOfType(m1))[
-		which(sim.mutationFrequencies(p1, unique(sim.subpopulations.genomes.mutationsOfType(m1))) <= FreqBound | 
-		sim.mutationFrequencies(p1, unique(sim.subpopulations.genomes.mutationsOfType(m1))) >= (1-FreqBound))];
-	else 
-		FreqencyConstrainedMutations=unique(sim.subpopulations.genomes.mutationsOfType(m1))[
-		which(sim.mutationFrequencies(p1, unique(sim.subpopulations.genomes.mutationsOfType(m1))) >= FreqBound & 
-		sim.mutationFrequencies(p1, unique(sim.subpopulations.genomes.mutationsOfType(m1))) <= (1-FreqBound))];
+	mut_mask = freqs < FreqBound | freqs > (1-FreqBound);
+	if (any(mut_mask)){
+ 		sim.subpopulations.genomes.removeMutations(muts[mut_mask], T); 
+	}
+	
+	FreqencyConstrainedMutations = unique(sim.subpopulations.genomes.mutationsOfType(m1));
 
 
 	// get all SNPs within one region of a chromosome
@@ -94,9 +94,26 @@ initialize() {
 			IndividualQTL.setSelectionCoeff(-(IndividualQTL.selectionCoeff));
 	}
 
-	// if there is epistasis, randomly set up epistatic pairs
-	if (Epistasis == T)
-		QTL.tag = 1:NQTL;
+	// if there is epistasis, randomly set up epistatic pairs in different chromosomes
+
+	QTL_chr1=unique(QTL)[which(QTL.position < LCh/2)];
+	QTL_chr2=unique(QTL)[which(QTL.position >= LCh/2)];
+
+	QTL_chr1.tag = seq(1, 2*length(QTL_chr1)-1, 2);
+	QTL_chr2.tag = seq(2, 2*length(QTL_chr2)  , 2);
+
+
+	if (Direction == F)
+		epi_out_file = OutPath + "SimRep" + SimRepID + "/ExpRepPlus" + ExpRepID + "/_EpiQTL_list.txt";
+	else
+		epi_out_file = OutPath + "SimRep" + SimRepID + "/ExpRepMinus" + ExpRepID + "/_EpiQTL_list.txt";
+	writeFile(epi_out_file, "pair pos1 pos2", F);
+	for(EpistasisPair in 1:(NEPIPAIR)){
+	
+		EpistasisQTL1 = QTL[which(QTL.tag == 2*EpistasisPair-1)];
+		EpistasisQTL2 = QTL[which(QTL.tag == 2*EpistasisPair)];
+		writeFile(epi_out_file, paste(EpistasisPair, EpistasisQTL1.position+1, EpistasisQTL2.position+1), T);
+	}
 		
 	// set experimental population size (only takes effect in the next generation)
    p1.setSubpopulationSize(PopSize);
@@ -126,7 +143,7 @@ initialize() {
 			if (Epistasis == F)
 			{
 				// extract sites when the mutant alleles are hehomozygous or heterozygous as needed for dominance scenarios 
-				Homo = individual.genomes[0].mutationsOfType(m2)[match(individual.genomes[0].mutationsOfType(m2),individual.genomes[1].mutationsOfType(m2))>=0];
+				Homo = individual.genomes[0].mutationsOfType(m2)[match(individual.genomes[0].mutationsOfType(m2), individual.genomes[1].mutationsOfType(m2))>=0];
 				Hetero = c(
 				individual.genomes[0].mutationsOfType(m2)[match(individual.genomes[0].mutationsOfType(m2),individual.genomes[1].mutationsOfType(m2))<0],
 				individual.genomes[1].mutationsOfType(m2)[match(individual.genomes[1].mutationsOfType(m2),individual.genomes[0].mutationsOfType(m2))<0]);
@@ -199,21 +216,21 @@ initialize() {
 	
 	
 	// output the traits
-	if (GenID % 10 == 0 | GenID == 1){
-	 	catn("Generation " + GenID + ": Mean phenotype == " + mean(sim.subpopulations.individuals.tagF)); 
+	if (GenID % 10 == 0 | GenID == 1 | GenID == 100){
+	 	catn("Generation " + format("%.3d", GenID) + ": Mean phenotype == " + mean(sim.subpopulations.individuals.tagF)); 
 
 		Traits = paste(sim.subpopulations.individuals.tagF, sep="\n"); 
 		if (Direction == F)
-			writeFile(OutPath + "SimRep" + SimRepID + "/ExpRepPlus" + ExpRepID + "/Gen" + GenID + "_Trait.txt", Traits, F);
+			writeFile(OutPath + "SimRep" + SimRepID + "/ExpRepPlus" + ExpRepID + "/Gen_" + format("%.3d", GenID) + "_Trait.txt", Traits, F);
 		else
-			writeFile(OutPath + "SimRep" + SimRepID + "/ExpRepMinus" + ExpRepID + "/Gen" + GenID + "_Trait.txt", Traits, F);
+			writeFile(OutPath + "SimRep" + SimRepID + "/ExpRepMinus" + ExpRepID + "/Gen_" + format("%.3d", GenID) + "_Trait.txt", Traits, F);
 		
 		// output number of persisting QTLs each generation
 		NSegregatingQTL = paste(size(unique(sim.subpopulations.individuals.genomes.mutationsOfType(m2))));
 		if (Direction == F)
-			writeFile(OutPath + "SimRep" + SimRepID + "/ExpRepPlus" + ExpRepID + "/Gen" + GenID + "_NSegregatingQTL.txt", NSegregatingQTL, F);
+			writeFile(OutPath + "SimRep" + SimRepID + "/ExpRepPlus" + ExpRepID + "/Gen_" + format("%.3d", GenID) + "_NSegregatingQTL.txt", NSegregatingQTL, F);
 		else
-			writeFile(OutPath + "SimRep" + SimRepID + "/ExpRepMinus" + ExpRepID + "/Gen" + GenID + "_NSegregatingQTL.txt", NSegregatingQTL, F);
+			writeFile(OutPath + "SimRep" + SimRepID + "/ExpRepMinus" + ExpRepID + "/Gen_" + format("%.3d", GenID) + "_NSegregatingQTL.txt", NSegregatingQTL, F);
 	}
 
 	// get the phenotypic order for all individuals in order to perform truncating selection; change this if a different selection regime is used
@@ -251,24 +268,24 @@ initialize() {
 	SampledIndividuals = sample(AllIndividuals, SampleSize);
 	
 	// output sampled population
-	if (GenID % 10 == 0){
+	if (GenID % 25 == 0 | GenID == 1 | GenID == 10 | GenID == 100){
 
 		if (Direction == F){
-			//SampledIndividuals.genomes.output(OutPath + "SimRep" + SimRepID + "/ExpRepPlus" + ExpRepID + "/Gen" + GenID + "_Sample.txt");
-			sim.outputMutations(sim.mutationsOfType(m2), filePath=OutPath + "SimRep" + SimRepID + "/ExpRepPlus" + ExpRepID + "/Gen" + GenID + "_mutations.txt", append=T);
-			sim.subpopulations.outputVCFSample(SampleSize, F, filePath=OutPath + "SimRep" + SimRepID + "/ExpRepPlus" + ExpRepID + "/Gen" + GenID + "_Sample.vcf");
+			//SampledIndividuals.genomes.output(OutPath + "SimRep" + SimRepID + "/ExpRepPlus" + ExpRepID + "/Gen_" + format("%.3d", GenID) + "_Sample.txt");
+			sim.outputMutations(sim.mutationsOfType(m2), filePath=OutPath + "SimRep" + SimRepID + "/ExpRepPlus" + ExpRepID + "/Gen_" + format("%.3d", GenID) + "_mutations.txt", append=T);
+			sim.subpopulations.outputVCFSample(SampleSize, F, filePath=OutPath + "SimRep" + SimRepID + "/ExpRepPlus" + ExpRepID + "/Gen_" + format("%.3d", GenID) + "_Sample.vcf");
 		}
 		else{
-			//SampledIndividuals.genomes.output(OutPath + "SimRep" + SimRepID + "/ExpRepMinus" + ExpRepID + "/Gen" + GenID + "_Sample.txt");
-			sim.outputMutations(sim.mutationsOfType(m2), filePath=OutPath + "SimRep" + SimRepID + "/ExpRepMinus" + ExpRepID + "/Gen" + GenID + "_mutations.txt", append=T);
-			sim.subpopulations.outputVCFSample(SampleSize, F, filePath=OutPath + "SimRep" + SimRepID + "/ExpRepMinus" + ExpRepID + "/Gen" + GenID + "_Sample.vcf");
+			//SampledIndividuals.genomes.output(OutPath + "SimRep" + SimRepID + "/ExpRepMinus" + ExpRepID + "/Gen_" + format("%.3d", GenID) + "_Sample.txt");
+			sim.outputMutations(sim.mutationsOfType(m2), filePath=OutPath + "SimRep" + SimRepID + "/ExpRepMinus" + ExpRepID + "/Gen_" + format("%.3d", GenID) + "_mutations.txt", append=T);
+			sim.subpopulations.outputVCFSample(SampleSize, F, filePath=OutPath + "SimRep" + SimRepID + "/ExpRepMinus" + ExpRepID + "/Gen_" + format("%.3d", GenID) + "_Sample.vcf");
 		}
 	}
 	// output full population
 	//if (Direction == F)
-	//	AllIndividuals.genomes.output(OutPath + "SimRep" + SimRepID + "/ExpRepPlus" + ExpRepID + "/Gen" + GenID + "_Full.txt");
+	//	AllIndividuals.genomes.output(OutPath + "SimRep" + SimRepID + "/ExpRepPlus" + ExpRepID + "/Gen_" + GenID + "_Full.txt");
 	//else
-	//	AllIndividuals.genomes.output(OutPath + "SimRep" + SimRepID + "/ExpRepMinus" + ExpRepID + "/Gen" + GenID + "_Full.txt");	
+	//	AllIndividuals.genomes.output(OutPath + "SimRep" + SimRepID + "/ExpRepMinus" + ExpRepID + "/Gen_" + GenID + "_Full.txt");	
 }
 
 50099 late(){

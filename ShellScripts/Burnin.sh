@@ -12,26 +12,31 @@ cd /home/diogro/projects/HS_simulations/data/epistatic_tests # Change this to a 
 mkdir -p Burnin_n5000
 cd Burnin_n5000
 
-for k in {1..10} # Number of simulation replicates that you want to create.
+for k in {1..100} # Number of simulation replicates that you want to create.
 do 
     mkdir -p 'SimRep'$k
 done
 cd ..
 
-## Step 2: Run burnin using SLiM 2. Variables inside the loop are all customizable and can be changed as desired. 
-
-for k in {1..10} # Set the number of simulation replicates that you want to create.
+## Step 2: Run burn-in using SLiM 2. Variables inside the loop are all customizable and can be changed as desired. 
+k=11
+while [ $k -lt 100 ] # Set the number of simulation replicates that you want to create.
 do
-	# Set the path to the SLiM program in the next line 
-    slim \
-    -d SimRepID=$k  \
-    -d Mu=1.5e-9 \
-    -d RecRate=1e-8 \
-    -d LCh=30000000 \
-    -d BurninSize=5000 \
-    -d "BurninPath='/home/diogro/projects/HS_simulations/data/epistatic_tests/Burnin_n5000/'" \
-    -d "BurninFilename='Burnin.txt'" \
-    /home/diogro/projects/evolve-resequence-simulation/SlimScripts/Burnin.slim & # Directory to the Burnin.slim file included in the simulation tool.
+    for i in {1..10}
+    do
+    	# Set the path to the SLiM program in the next line 
+        slim \
+        -d SimRepID=$k  \
+        -d Mu=1.5e-9 \
+        -d RecRate=1e-8 \
+        -d LCh=30000000 \
+        -d BurninSize=5000 \
+        -d "BurninPath='/home/diogro/projects/HS_simulations/data/epistatic_tests/Burnin_n5000/'" \
+        -d "BurninFilename='Burnin.txt'" \
+        /home/diogro/projects/evolve-resequence-simulation/SlimScripts/Burnin.slim & # Directory to the Burnin.slim file included in the simulation tool.
+        let k=k+1
+    done
+    wait
 done
 
 # SimuRepID = Simulation Replicate ID
